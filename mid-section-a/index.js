@@ -10,8 +10,7 @@ const products = [
     imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Headphones",
   },
   {
-    name: "Smartphone",
-    price: 599.99,
+price: 599.99,
     imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Smartphone",
   },
   {
@@ -40,7 +39,12 @@ const products = [
     imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Gaming%20Console",
   },
 ];
+
 const container = document.getElementById("product-container");
+const cartContainer = document.getElementById("cart");
+
+const cart = [];
+
 products.forEach((product) => {
   const productDiv = document.createElement("div");
   productDiv.classList.add("product");
@@ -68,6 +72,11 @@ products.forEach((product) => {
   button.textContent = "Add to Cart";
   button.classList.add("add-to-cart-btn");
 
+  button.addEventListener("click", () => {
+    addToCart(product);
+    updateCart();
+  });
+
   infoDiv.appendChild(name);
   infoDiv.appendChild(price);
   infoDiv.appendChild(button);
@@ -77,3 +86,66 @@ products.forEach((product) => {
 
   container.appendChild(productDiv);
 });
+
+function addToCart(product) {
+  const existingItem = cart.find(item => item.name === product.name);
+  if (existingItem) {
+    existingItem.quantity++;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
+}
+
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  updateCart();
+}
+
+function updateCart() {
+  cartContainer.innerHTML = ""; 
+  let totalPrice = 0;
+  cart.forEach((item, index) => {
+    const cartItemDiv = document.createElement("div"); // created Div cart
+    cartItemDiv.classList.add("cart-item");
+
+    const itemName = document.createElement("p");
+    itemName.textContent = item.name;
+
+    const itemPrice = document.createElement("p");
+    itemPrice.textContent = "$" + (item.price * item.quantity).toFixed(2);
+
+    const quantityInput = document.createElement("input");
+    quantityInput.type = "number";
+    quantityInput.min = 1;
+    quantityInput.value = item.quantity;
+    quantityInput.addEventListener("change", (event) => {
+      const newQuantity = parseInt(event.target.value);
+      if (newQuantity < 1) {
+        removeFromCart(index);
+      } else {
+        cart[index].quantity = newQuantity;
+        updateCart();
+      }
+    });
+
+    const removeButton = document.createElement("button");
+    removeButton.textContent = "Remove";
+    removeButton.addEventListener("click", () => {
+      removeFromCart(index);
+    });
+
+    cartItemDiv.appendChild(itemName);
+    cartItemDiv.appendChild(itemPrice);
+    cartItemDiv.appendChild(quantityInput);
+    cartItemDiv.appendChild(removeButton);
+
+    cartContainer.appendChild(cartItemDiv);
+
+    totalPrice += item.price * item.quantity;
+  });
+
+  const totalPriceElement = document.createElement("p");
+  totalPriceElement.textContent = "Total Price: $" + totalPrice.toFixed(2);
+  cartContainer.appendChild(totalPriceElement);
+}
+
